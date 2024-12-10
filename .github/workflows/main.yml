@@ -1,0 +1,25 @@
+name: Windows RDP
+
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 9999
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Enable Remote Desktop
+      run: |
+        Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name "fDenyTSConnections" -Value 0
+        Enable-NetFirewallRule -DisplayGroup "Remote Desktop"
+        Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp' -Name "UserAuthentication" -Value 1
+
+    - name: Set up user
+      run: Set-LocalUser -Name "runneradmin" -Password (ConvertTo-SecureString -AsPlainText "Tasnim@123" -Force)
+
+    - name: Start RDP
+      run: |
+        net start TermService
